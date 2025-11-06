@@ -13,7 +13,8 @@ public class PersonQueue
     /// <param name="person">The person to add</param>
     public void Enqueue(Person person)
     {
-        _queue.Insert(0, person);
+        // Add to the back of the queue for FIFO order
+        _queue.Add(person);
     }
 
     public Person Dequeue()

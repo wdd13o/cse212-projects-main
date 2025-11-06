@@ -11,7 +11,13 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (5), Sue (3) and
     // run until the queue is empty
     // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim
-    // Defect(s) Found: 
+    // Defect(s) Found: Two major defects:
+    // 1. PersonQueue.Enqueue added items at the front (index 0) instead of the back,
+    //    causing reversed FIFO order
+    // 2. TakingTurnsQueue.GetNextPerson had incorrect turn handling:
+    //    - Only re-enqueued if turns > 1 instead of > 0
+    //    - Did not properly handle infinite turns (<=0)
+    //    - Decremented turns before checking for infinite status
     public void TestTakingTurnsQueue_FiniteRepetition()
     {
         var bob = new Person("Bob", 2);
@@ -43,7 +49,9 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (5), Sue (3)
     // After running 5 times, add George with 3 turns.  Run until the queue is empty.
     // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, George, Sue, Tim, George, Tim, George
-    // Defect(s) Found: 
+    // Defect(s) Found: Same defects as Test 1:
+    // - Incorrect FIFO ordering in PersonQueue.Enqueue
+    // - Incorrect turn handling in GetNextPerson affecting turn counting and re-enqueueing
     public void TestTakingTurnsQueue_AddPlayerMidway()
     {
         var bob = new Person("Bob", 2);
@@ -85,7 +93,10 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (Forever), Sue (3)
     // Run 10 times.
     // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim
-    // Defect(s) Found: 
+    // Defect(s) Found: Additional defect found beyond FIFO ordering:
+    // - GetNextPerson did not properly handle infinite turns (turns=0)
+    // - Tried to decrement turns even for infinite-turn people
+    // - Did not maintain original turns value for infinite-turn case
     public void TestTakingTurnsQueue_ForeverZero()
     {
         var timTurns = 0;
@@ -116,7 +127,9 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Tim (Forever), Sue (3)
     // Run 10 times.
     // Expected Result: Tim, Sue, Tim, Sue, Tim, Sue, Tim, Tim, Tim, Tim
-    // Defect(s) Found: 
+    // Defect(s) Found: Same infinite turns defect as Test 3:
+    // - Negative turns (forever) were not handled correctly
+    // - Should not modify turns value for infinite-turn cases
     public void TestTakingTurnsQueue_ForeverNegative()
     {
         var timTurns = -3;
@@ -143,7 +156,7 @@ public class TakingTurnsQueueTests
     [TestMethod]
     // Scenario: Try to get the next person from an empty queue
     // Expected Result: Exception should be thrown with appropriate error message.
-    // Defect(s) Found: 
+    // Defect(s) Found: No defects - empty queue handling worked correctly
     public void TestTakingTurnsQueue_Empty()
     {
         var players = new TakingTurnsQueue();
